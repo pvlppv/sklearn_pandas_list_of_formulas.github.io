@@ -122,7 +122,13 @@ print(q3 - q1)                                # IQR
 ```
 Исправить опечатки в категориях + бинаризовать таргет:
 ```python
-df['target'] = df['target'].replace({'Churn':1,'Not churn':0,'churn':1,'not churn':0})
+df['target'].value_counts()   # СНАЧАЛА глянь все написания (Churn / churn / Chrun / Not churn ...)
+# "сколько опечаток исправили" = число неправильных написаний (всё, кроме 2 верных)
+df['target'] = df['target'].replace({'Churn':1,'Not churn':0,'churn':1,'not churn':0,'Chrun':1})
+```
+Проверка «верно ли, что если признак = A, то target = 1» (ответ да/нет):
+```python
+print(df[df['cat_col']=='A']['target'].unique())   # если только [1] → "да", иначе → "нет"
 ```
 
 ---
@@ -219,8 +225,23 @@ print(round(g(40,60) - 70/100*g(20,50) - 30/100*g(20,10), 2))
 P=[0.4,0.35,0.25]; pe=[0.04,0.06,0.03]; k=1
 print(round(P[k]*pe[k]/sum(p*e for p,e in zip(P,pe)), 2))
 
+# ROC-AUC, если позитивы занимают ранги c..d из N (по возрастанию score)
+# = (число негативов НИЖЕ позитивов)/(всего негативов)
+# пример: позитивы на рангах 6501..6600 из 10000 → 6500/9900
+print(round(6500/9900, 2))
+
+# LogReg с ОДНИМ бинарным признаком = доля в группе (по таблице 2x2)
+print(round(35/(35+17), 2))   # P(принят | пешком)
+
+# KNN + leave-one-out: перебрать k вручную, accuracy
+X=np.array([(-1,1),(1,-1),(1,1),(0,0)]); y=np.array([1,1,1,-1])
+for k in (1,3):
+    c=0
+    for i in range(len(X)):
+        d=sorted((np.linalg.norm(X[i]-X[j]), y[j]) for j in range(len(X)) if j!=i)
+        lab=[l for _,l in d[:k]]
+        c += (1 if lab.count(1)>=lab.count(-1) else -1)==y[i]
+    print(k, c/len(X))   # выбираешь k с макс. accuracy
+
 # Мат.ожидание: геометрич. E=1/p ; биномиальн. E=n*p
-# word2vec: собрать вектор, в ответ (v**2).sum()
-# SVM ширина полосы: 2/np.linalg.norm(w)
-# ядро cos: np.exp(-np.sum((a-b)**2))  (при K(a,a)=1)
 ```
